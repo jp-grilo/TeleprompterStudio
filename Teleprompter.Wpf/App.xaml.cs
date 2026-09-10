@@ -17,9 +17,38 @@ public partial class App : Application
 
     public App()
     {
+        // 1. Log Global de Erros de UI
+        this.DispatcherUnhandledException += (s, e) => 
+        {
+            LogCrash(e.Exception);
+            MessageBox.Show("Ocorreu um erro fatal. Verifique o arquivo crash.log.\n\n" + e.Exception.Message, "Erro Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
+        };
+
+        // 2. Log Global de Erros de Threads em Background
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            if (e.ExceptionObject is Exception ex) LogCrash(ex);
+        };
+
+        // 3. Log Global de Tasks não observadas
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            LogCrash(e.Exception);
+        };
+
         var services = new ServiceCollection();
         ConfigureServices(services);
         ServiceProvider = services.BuildServiceProvider();
+    }
+
+    private void LogCrash(Exception ex)
+    {
+        try
+        {
+            System.IO.File.AppendAllText("crash.log", $"[{DateTime.Now}] {ex.ToString()}\n\n");
+        }
+        catch { }
     }
 
     private void ConfigureServices(IServiceCollection services)
