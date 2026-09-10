@@ -53,9 +53,10 @@ public partial class App : Application
 
     private void ConfigureServices(IServiceCollection services)
     {
-        // Data
+        // Data - Banco fixado na mesma pasta do executável para evitar conflitos de diretório raiz
+        string dbPath = System.IO.Path.Combine(AppContext.BaseDirectory, "teleprompter.db");
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite("Data Source=teleprompter.db"));
+            options.UseSqlite($"Data Source={dbPath}"));
 
         // Services
         services.AddSingleton<ISettingsService, SettingsService>();
@@ -80,20 +81,20 @@ public partial class App : Application
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
 
-            // Seed inicial se o banco estiver vazio
+            // Seed inicial expandido com Djavan e Jorge Vercillo
             if (!db.Songs.Any())
             {
                 var scraper = scope.ServiceProvider.GetRequiredService<ISongScraper>();
                 try
                 {
                     string rawEvidencias = await scraper.ScrapeAsync("https://www.cifraclub.com.br/chitaozinho-e-xororo/evidencias/");
-                    db.Songs.Add(new Teleprompter.Core.Models.Song 
-                    { 
-                        Title = "Evidências", 
-                        Artist = "Chitãozinho & Xororó", 
-                        Album = "Cowboy do Asfalto",
-                        RawContent = rawEvidencias 
-                    });
+                    string rawSina = await scraper.ScrapeAsync("https://www.cifraclub.com.br/djavan/sina/");
+                    string rawMare = await scraper.ScrapeAsync("https://www.cifraclub.com.br/jorge-vercillo/que-nem-mare/");
+
+                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Evidências", Artist = "Chitãozinho & Xororó", Album = "Cowboy do Asfalto", RawContent = rawEvidencias });
+                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Sina", Artist = "Djavan", Album = "Luz", RawContent = rawSina });
+                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Que Nem Maré", Artist = "Jorge Vercillo", Album = "Perfil", RawContent = rawMare });
+                    
                     await db.SaveChangesAsync();
                 }
                 catch { /* fallback silencioso caso falhe a internet */ }
