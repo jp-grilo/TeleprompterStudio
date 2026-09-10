@@ -20,10 +20,7 @@ public partial class MainWindow : Window
             {
                 vm.SelectedSong = song;
             }
-            else
-            {
-                vm.SelectedSong = null;
-            }
+            // Se clicar numa pasta, não faz nada com a música atual para não piscar a tela
         }
     }
 
@@ -33,6 +30,31 @@ public partial class MainWindow : Window
         {
             var stage = new TeleprompterWindow(vm.SelectedSong);
             stage.Show();
+        }
+    }
+
+    private void SearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        // To be implemented fully in ViewModel, filtering logic
+    }
+
+    private void ContextMenu_Stage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.FrameworkElement el && el.DataContext is TreeItem item && item.Tag is Song song)
+        {
+            var stage = new TeleprompterWindow(song);
+            stage.Show();
+        }
+    }
+
+    private void ContextMenu_Favorite_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.FrameworkElement el && el.DataContext is TreeItem item && item.Tag is Song song)
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.ToggleFavoriteCommand.Execute(song);
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ public class Song
     public string RawContent { get; set; } = string.Empty;
     public int TransposeAmount { get; set; } = 0;
     public double ScrollSpeed { get; set; } = 1.0;
+    public bool IsFavorite { get; set; } = false;
 
     public ICollection<SongFolder> SongFolders { get; set; } = new List<SongFolder>();
 }

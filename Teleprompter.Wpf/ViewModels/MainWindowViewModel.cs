@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Teleprompter.Core.Models;
 using Teleprompter.Data.Context;
@@ -31,6 +33,14 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private Song? _selectedSong;
 
+    [ObservableProperty]
+    private bool _isEditMode = false;
+
+    // Campos temporários para caso o usuário cancele a edição
+    private string _backupRawContent = string.Empty;
+    private string _backupTitle = string.Empty;
+    private string _backupArtist = string.Empty;
+
     public MainWindowViewModel(ISettingsService settingsService, AppDbContext dbContext)
     {
         _settingsService = settingsService;
@@ -47,14 +57,79 @@ public partial class MainWindowViewModel : ObservableObject
         await BuildTreeAsync();
     }
 
-    private async Task BuildTreeAsync()
+    partial void OnSelectedSongChanged(Song? value)
+    {
+        IsEditMode = false;
+    }
+
+    [RelayCommand]
+    private void EnterEditMode()
+    {
+        if (SelectedSong != null)
+        {
+            _backupRawContent = SelectedSong.RawContent;
+            _backupTitle = SelectedSong.Title;
+            _backupArtist = SelectedSong.Artist;
+            IsEditMode = true;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelEdit()
+    {
+        if (SelectedSong != null)
+        {
+            SelectedSong.RawContent = _backupRawContent;
+            SelectedSong.Title = _backupTitle;
+            SelectedSong.Artist = _backupArtist;
+            
+            // Força a UI a atualizar as propriedades
+            OnPropertyChanged(nameof(SelectedSong));
+            IsEditMode = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveSongAsync()
+    {
+        if (SelectedSong != null)
+        {
+            _dbContext.Songs.Update(SelectedSong);
+            await _dbContext.SaveChangesAsync();
+            IsEditMode = false;
+            await BuildTreeAsync(); // Atualiza árvore caso o nome/artista tenha mudado
+        }
+    }
+
+    [RelayCommand]
+    private async Task ToggleFavoriteAsync(Song? song)
+    {
+        var target = song ?? SelectedSong;
+        if (target != null)
+        {
+            target.IsFavorite = !target.IsFavorite;
+            _dbContext.Songs.Update(target);
+            await _dbContext.SaveChangesAsync();
+            await BuildTreeAsync(); // Recarrega para mostrar/esconder na pasta Favoritos
+        }
+    }
+
+    public async Task BuildTreeAsync()
     {
         var songs = await _dbContext.Songs.OrderBy(s => s.Title).ToListAsync();
         var folders = await _dbContext.Folders.Include(f => f.SongFolders).ThenInclude(sf => sf.Song).ToListAsync();
 
         var nodes = new ObservableCollection<TreeItem>();
 
-        // 1. Todas as Músicas (A-Z)
+        // 1. Favoritas
+        var favoritesNode = new TreeItem { Header = "⭐ Favoritas" };
+        foreach (var song in songs.Where(s => s.IsFavorite))
+        {
+            favoritesNode.Children.Add(new TreeItem { Header = song.Title, Tag = song });
+        }
+        nodes.Add(favoritesNode);
+
+        // 2. Todas as Músicas (A-Z)
         var allSongsNode = new TreeItem { Header = "Todas as Músicas" };
         foreach (var song in songs)
         {
@@ -62,7 +137,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
         nodes.Add(allSongsNode);
 
-        // 2. Artistas / Álbum / Música
+        // 3. Artistas / Álbum / Música
         var artistsNode = new TreeItem { Header = "Artistas", Children = new ObservableCollection<TreeItem>() };
         var groupedByArtist = songs.GroupBy(s => string.IsNullOrWhiteSpace(s.Artist) ? "Desconhecido" : s.Artist).OrderBy(g => g.Key);
         
@@ -84,8 +159,8 @@ public partial class MainWindowViewModel : ObservableObject
         }
         nodes.Add(artistsNode);
 
-        // 3. Repertórios (Pastas Customizadas)
-        var repertoiresNode = new TreeItem { Header = "Repertórios" };
+        // 4. Minhas Músicas (Pastas Customizadas do Usuário)
+        var repertoiresNode = new TreeItem { Header = "Minhas Músicas" };
         foreach (var folder in folders)
         {
             var folderItem = new TreeItem { Header = folder.Name };
