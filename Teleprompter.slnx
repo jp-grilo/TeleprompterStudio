@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Teleprompter.Core/Teleprompter.Core.csproj" />
+  <Project Path="Teleprompter.Data/Teleprompter.Data.csproj" />
+  <Project Path="Teleprompter.Services/Teleprompter.Services.csproj" />
+  <Project Path="Teleprompter.Tests/Teleprompter.Tests.csproj" />
+  <Project Path="Teleprompter.Wpf/Teleprompter.Wpf.csproj" />
+</Solution>
