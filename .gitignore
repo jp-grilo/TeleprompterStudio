@@ -1,0 +1,37 @@
+﻿## Visual Studio e .NET
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+
+## SQLite
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+## Pacotes e builds
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## Testes e cobertura
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+## Sistema operacional
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
