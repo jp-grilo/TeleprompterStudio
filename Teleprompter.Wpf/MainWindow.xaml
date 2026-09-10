@@ -16,17 +16,32 @@
 
         <!-- Sidebar -->
         <Border Grid.Column="0" Background="#252526" Padding="10">
-            <StackPanel>
-                <TextBlock Text="Teleprompter" FontSize="20" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
-                <TextBox x:Name="SearchBox" Padding="5" Margin="0,0,0,10" Background="#333333" Foreground="White" BorderThickness="0" Text="Pesquisar..." />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Teleprompter" FontSize="20" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
+                <TextBox Grid.Row="1" x:Name="SearchBox" Padding="5" Margin="0,0,0,10" Background="#333333" Foreground="White" BorderThickness="0" Text="Pesquisar..." />
                 
-                <TreeView Background="Transparent" Foreground="White" BorderThickness="0">
-                    <TreeViewItem Header="Minhas Músicas" IsExpanded="True">
-                        <!-- Itens virão do ViewModel depois -->
+                <TreeView Grid.Row="2" Background="Transparent" Foreground="White" BorderThickness="0">
+                    <TreeViewItem Header="Minhas Músicas" IsExpanded="True" ItemsSource="{Binding Songs}">
+                        <TreeViewItem.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Title}" ToolTip="{Binding Artist}"/>
+                            </DataTemplate>
+                        </TreeViewItem.ItemTemplate>
                     </TreeViewItem>
-                    <TreeViewItem Header="Repertórios" />
+                    <TreeViewItem Header="Repertórios" ItemsSource="{Binding Folders}">
+                        <TreeViewItem.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </TreeViewItem.ItemTemplate>
+                    </TreeViewItem>
                 </TreeView>
-            </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Divisor -->
@@ -34,7 +49,24 @@
 
         <!-- Main Area (Leitura/Edição) -->
         <Grid Grid.Column="2" Background="#1E1E1E">
-            <TextBlock Text="Nenhuma música selecionada" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#888888" FontSize="16" />
+            <!-- Editor / Reader -->
+            <Grid DataContext="{Binding SelectedSong}" Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="{Binding Title}" FontSize="28" FontWeight="Bold" Foreground="#007ACC" />
+                    <TextBlock Text="{Binding Artist}" FontSize="16" Foreground="#CCCCCC" />
+                </StackPanel>
+                
+                <TextBox Grid.Row="1" Text="{Binding RawContent, UpdateSourceTrigger=PropertyChanged}" 
+                         AcceptsReturn="True" 
+                         Background="#252526" Foreground="#D4D4D4" 
+                         FontFamily="Consolas" FontSize="16" 
+                         BorderThickness="0" Padding="10" />
+            </Grid>
         </Grid>
     </Grid>
 </Window>
