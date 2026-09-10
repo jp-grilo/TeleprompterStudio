@@ -21,26 +21,23 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="Teleprompter" FontSize="20" FontWeight="Bold" Margin="0,0,0,10" Foreground="#007ACC"/>
                 <TextBox Grid.Row="1" x:Name="SearchBox" Padding="5" Margin="0,0,0,10" Background="#333333" Foreground="White" BorderThickness="0" Text="Pesquisar..." />
                 
-                <TreeView Grid.Row="2" Background="Transparent" Foreground="White" BorderThickness="0">
-                    <TreeViewItem Header="Minhas Músicas" IsExpanded="True" ItemsSource="{Binding Songs}">
-                        <TreeViewItem.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Title}" ToolTip="{Binding Artist}"/>
-                            </DataTemplate>
-                        </TreeViewItem.ItemTemplate>
-                    </TreeViewItem>
-                    <TreeViewItem Header="Repertórios" ItemsSource="{Binding Folders}">
-                        <TreeViewItem.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" />
-                            </DataTemplate>
-                        </TreeViewItem.ItemTemplate>
-                    </TreeViewItem>
+                <!-- Hierarchical TreeView -->
+                <TreeView Grid.Row="2" Background="Transparent" Foreground="White" BorderThickness="0" 
+                          ItemsSource="{Binding TreeNodes}" SelectedItemChanged="TreeView_SelectedItemChanged">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                            <TextBlock Text="{Binding Header}" />
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
                 </TreeView>
+                
+                <!-- Botão Criar Pasta -->
+                <Button Grid.Row="3" Content="Criar Repertório" Background="#007ACC" Foreground="White" BorderThickness="0" Padding="5" Margin="0,10,0,0" Cursor="Hand"/>
             </Grid>
         </Border>
 
@@ -53,6 +50,7 @@
             <Grid DataContext="{Binding SelectedSong}" Margin="20">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 
@@ -61,7 +59,10 @@
                     <TextBlock Text="{Binding Artist}" FontSize="16" Foreground="#CCCCCC" />
                 </StackPanel>
                 
-                <TextBox Grid.Row="1" Text="{Binding RawContent, UpdateSourceTrigger=PropertyChanged}" 
+                <!-- Botão para abrir o Teleprompter pro palco -->
+                <Button Grid.Row="1" Content="ABRIR NO PALCO" HorizontalAlignment="Left" Background="#28A745" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,0,15" Cursor="Hand" Click="OpenStage_Click"/>
+                
+                <TextBox Grid.Row="2" Text="{Binding RawContent, UpdateSourceTrigger=PropertyChanged}" 
                          AcceptsReturn="True" 
                          Background="#252526" Foreground="#D4D4D4" 
                          FontFamily="Consolas" FontSize="16" 

@@ -42,15 +42,33 @@ public partial class App : Application
         services.AddTransient<MainWindow>();
     }
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // Certificar que o banco está criado
         using (var scope = ServiceProvider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.EnsureCreated();
+
+            // Seed inicial se o banco estiver vazio
+            if (!db.Songs.Any())
+            {
+                var scraper = scope.ServiceProvider.GetRequiredService<ISongScraper>();
+                try
+                {
+                    string rawEvidencias = await scraper.ScrapeAsync("https://www.cifraclub.com.br/chitaozinho-e-xororo/evidencias/");
+                    db.Songs.Add(new Teleprompter.Core.Models.Song 
+                    { 
+                        Title = "Evidências", 
+                        Artist = "Chitãozinho & Xororó", 
+                        Album = "Cowboy do Asfalto",
+                        RawContent = rawEvidencias 
+                    });
+                    await db.SaveChangesAsync();
+                }
+                catch { /* fallback silencioso caso falhe a internet */ }
+            }
         }
 
         var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();

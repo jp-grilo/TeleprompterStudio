@@ -1,0 +1,15 @@
+<Window x:Class="Teleprompter.Wpf.TeleprompterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Teleprompter - Stage" Height="768" Width="1024"
+        Background="Black" Foreground="White" WindowState="Maximized" WindowStyle="None">
+    <Grid Margin="40">
+        <!-- Motor de Rolagem (A ser animado depois) -->
+        <ScrollViewer x:Name="StageScroll" VerticalScrollBarVisibility="Hidden">
+            <StackPanel x:Name="LinesContainer">
+                <TextBlock x:Name="TitleBlock" FontSize="60" FontWeight="Bold" Foreground="#007ACC" Margin="0,0,0,40" />
+                <TextBlock x:Name="ContentBlock" FontSize="48" FontFamily="Consolas" Foreground="White" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>
