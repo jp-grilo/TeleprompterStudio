@@ -5,7 +5,7 @@ namespace Teleprompter.Services.Parsing;
 
 public class UniversalChordParserService : IUniversalChordParserService
 {
-    private static readonly Regex SectionHeaderRegex = new(@"^\[?(Verse|Chorus|Intro|Outro|Bridge|Solo|Interlude|Pre-Chorus|Part)[^\]\n]*\]?:?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex SectionHeaderRegex = new(@"^\[?(Verse|Chorus|Intro|Outro|Bridge|Solo|Interlude|Pre-Chorus|Part|Refr[ãa]o)[^\]\n]*\]?:?$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     
     // Very basic regex to identify a line that only contains chords and spaces
     private static readonly Regex ChordLineRegex = new(@"^(?:\s*[A-G](?:#|b)?(?:m|maj|min|aug|dim|sus|add|\d)*[\+\-\(]?\d*[\)]?(?:\/[A-G](?:#|b)?)?\s*)+$", RegexOptions.Compiled);
