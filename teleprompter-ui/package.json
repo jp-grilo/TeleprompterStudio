@@ -1,13 +1,29 @@
 {
-  "name": "teleprompter-ui",
+  "name": "teleprompt",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "dist": "tsc -b && vite build && electron-builder",
     "lint": "oxlint",
     "preview": "vite preview"
+  },
+  "build": {
+    "appId": "com.teleprompt.app",
+    "productName": "Teleprompt",
+    "directories": {
+      "output": "dist-bin"
+    },
+    "win": {
+      "target": ["portable"]
+    },
+    "extraResources": [
+      "prisma/**/*",
+      "node_modules/@prisma/engines/**/*",
+      "node_modules/.prisma/client/**/*"
+    ]
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -24,6 +40,7 @@
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",
     "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.81.0",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",

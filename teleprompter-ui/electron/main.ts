@@ -1,8 +1,31 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+const isDev = !app.isPackaged;
+let dbUrl = 'file:./dev.db';
+
+if (!isDev) {
+  const dbPath = path.join(app.getPath('userData'), 'teleprompt.db');
+  const packagedDbPath = path.join(process.resourcesPath, 'prisma', 'dev.db');
+  if (!fs.existsSync(dbPath)) {
+    try {
+      fs.copyFileSync(packagedDbPath, dbPath);
+    } catch (err) {
+      console.error('Failed to copy database:', err);
+    }
+  }
+  dbUrl = `file:${dbPath}`;
+}
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: dbUrl
+    }
+  }
+});
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -22,7 +45,7 @@ function createWindow() {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
     // Em produção, carregaremos o arquivo compilado
-    // mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 }
 
