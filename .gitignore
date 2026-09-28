@@ -1,4 +1,4 @@
-﻿## Visual Studio e .NET
+## Visual Studio e .NET
 *.user
 *.userosscache
 *.sln.docstates
@@ -36,3 +36,15 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 HTML exemplo
+
+## Node.js e Electron
+node_modules/
+dist/
+dist-electron/
+dist-bin/
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.lnk
