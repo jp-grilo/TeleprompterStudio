@@ -21,8 +21,10 @@
     },
     "extraResources": [
       "prisma/**/*",
-      "node_modules/@prisma/engines/**/*",
-      "node_modules/.prisma/client/**/*"
+      {
+        "from": "node_modules/.prisma/client/query_engine-windows.dll.node",
+        "to": "query_engine-windows.dll.node"
+      }
     ]
   },
   "dependencies": {

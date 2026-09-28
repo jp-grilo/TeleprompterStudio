@@ -17,6 +17,12 @@ if (!isDev) {
     }
   }
   dbUrl = `file:${dbPath}`;
+
+  const qePath = path.join(
+    process.resourcesPath,
+    'query_engine-windows.dll.node'
+  );
+  process.env.PRISMA_QUERY_ENGINE_LIBRARY = qePath;
 }
 
 const prisma = new PrismaClient({
@@ -73,9 +79,9 @@ ipcMain.handle('get-tree', async () => {
   try {
     // 1. Pastas Virtuais (Sistema)
     const allSongs = await prisma.song.findMany({ orderBy: { title: 'asc' } });
-    
+
     const favorites = allSongs.filter(s => s.isFavorite);
-    
+
     // Agrupar por artista
     const artistsMap = new Map<string, any>();
     for (const song of allSongs) {
@@ -149,10 +155,10 @@ ipcMain.handle('open-player', async (_, songId) => {
     }
   });
 
-  const baseUrl = process.env.VITE_DEV_SERVER_URL 
-    ? process.env.VITE_DEV_SERVER_URL 
+  const baseUrl = process.env.VITE_DEV_SERVER_URL
+    ? process.env.VITE_DEV_SERVER_URL
     : `file://${path.join(__dirname, '../dist/index.html')}`;
-    
+
   // O React Router (HashRouter) ou estado local gerenciará a tela
   playerWindow.loadURL(`${baseUrl}#/player/${songId}`);
 });
@@ -233,7 +239,7 @@ ipcMain.handle('import-cifraclub', async (_, url: string) => {
 
         hiddenWin?.destroy();
         hiddenWin = null;
-        
+
         if (data.error) {
           reject(new Error(data.error));
         } else {
