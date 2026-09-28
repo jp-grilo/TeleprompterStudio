@@ -38,7 +38,7 @@ public partial class MainWindow : Window
         // To be implemented fully in ViewModel, filtering logic
     }
 
-    private void ContextMenu_Stage_Click(object sender, RoutedEventArgs e)
+    private void MenuStageItem_Click(object sender, RoutedEventArgs e)
     {
         if (sender is System.Windows.FrameworkElement el && el.DataContext is TreeItem item && item.Tag is Song song)
         {
@@ -47,7 +47,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ContextMenu_Favorite_Click(object sender, RoutedEventArgs e)
+    private void MenuFavItem_Click(object sender, RoutedEventArgs e)
     {
         if (sender is System.Windows.FrameworkElement el && el.DataContext is TreeItem item && item.Tag is Song song)
         {

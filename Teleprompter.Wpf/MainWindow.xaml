@@ -1,18 +1,25 @@
 <Window x:Class="Teleprompter.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{Binding WindowTitle}" Height="700" Width="1100"
-        Background="#1E1E1E" Foreground="White">
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:dd="urn:gong-wpf-dragdrop"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        Title="{Binding WindowTitle}" Height="750" Width="1200" WindowStartupLocation="CenterScreen">
     
-    <Grid Background="#1E1E1E">
+    <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300" />
-            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="320" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar -->
-        <Border Grid.Column="0" Background="#252526" Padding="10">
+        <!-- Sidebar (Esquerda) -->
+        <Border Grid.Column="0" Background="{DynamicResource MaterialDesignDarkBackground}" Padding="15">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -21,52 +28,46 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <!-- Cabeçalho -->
-                <Grid Grid.Row="0" Margin="0,0,0,10">
-                    <TextBlock Text="Teleprompter" FontSize="20" FontWeight="Bold" Foreground="#007ACC" VerticalAlignment="Center"/>
-                </Grid>
+                <!-- Logo / Title -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="MonitorDashboard" Width="30" Height="30" Foreground="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Teleprompter" FontSize="22" FontWeight="Bold" Margin="10,0,0,0" Foreground="{DynamicResource PrimaryHueLightBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
 
-                <!-- Search Bar + Botão Plus -->
-                <Grid Grid.Row="1" Margin="0,0,0,10">
+                <!-- Ações e Busca -->
+                <Grid Grid.Row="1" Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     
-                    <Grid Grid.Column="0" Margin="0,0,5,0">
-                        <TextBox x:Name="SearchBox" Padding="5" Background="#333333" Foreground="White" BorderThickness="0" TextChanged="SearchBox_TextChanged" />
-                        <TextBlock IsHitTestVisible="False" Text="Pesquisar..." Foreground="#888888" Margin="7,5,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Hidden"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Grid>
+                    <TextBox x:Name="SearchBox" Grid.Column="0" materialDesign:HintAssist.Hint="Pesquisar..." Style="{StaticResource MaterialDesignOutlinedTextBox}" TextChanged="SearchBox_TextChanged" Margin="0,0,5,0" />
                     
-                    <Button Grid.Column="1" Content="&#xE710;" FontFamily="Segoe MDL2 Assets" Background="#007ACC" Foreground="White" BorderThickness="0" Width="30" Cursor="Hand" ToolTip="Importar/Criar Música"/>
+                    <!-- Botões Globais -->
+                    <Button Grid.Column="1" Style="{StaticResource MaterialDesignFloatingActionMiniButton}" Width="35" Height="35" Margin="5,0,5,0" ToolTip="Adicionar Nova Pasta">
+                        <materialDesign:PackIcon Kind="FolderPlusOutline" />
+                    </Button>
+                    <Button Grid.Column="2" Style="{StaticResource MaterialDesignFloatingActionMiniButton}" Width="35" Height="35" ToolTip="Importar Música">
+                        <materialDesign:PackIcon Kind="FileMusicOutline" />
+                    </Button>
                 </Grid>
                 
-                <!-- Hierarchical TreeView with Context Menus -->
-                <TreeView Grid.Row="2" Background="Transparent" BorderThickness="0" 
-                          ItemsSource="{Binding TreeNodes}" SelectedItemChanged="TreeView_SelectedItemChanged">
+                <!-- Árvore de Pastas (Hierarchical) -->
+                <TreeView Grid.Row="2" ItemsSource="{Binding TreeNodes}" SelectedItemChanged="TreeView_SelectedItemChanged"
+                          dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.DropHandler="{Binding}">
                     <TreeView.ItemContainerStyle>
-                        <Style TargetType="TreeViewItem">
-                            <Setter Property="Foreground" Value="White"/>
-                            <!-- Context Menu para cada Nó -->
+                        <Style TargetType="TreeViewItem" BasedOn="{StaticResource MaterialDesignTreeViewItem}">
+                            <Setter Property="IsExpanded" Value="True"/>
                             <Setter Property="ContextMenu">
                                 <Setter.Value>
-                                    <ContextMenu Background="#252526" Foreground="White">
-                                        <MenuItem Header="Abrir no Palco" Click="ContextMenu_Stage_Click" />
-                                        <MenuItem Header="Favoritar/Desfavoritar" Click="ContextMenu_Favorite_Click" />
-                                        <Separator Background="#3E3E42" />
-                                        <MenuItem Header="Editar Nome" />
-                                        <MenuItem Header="Excluir" />
+                                    <ContextMenu>
+                                        <MenuItem x:Name="MenuStage" Header="Abrir no Palco" MenuItem.Click="MenuStageItem_Click">
+                                            <MenuItem.Icon><materialDesign:PackIcon Kind="PlayBoxOutline" /></MenuItem.Icon>
+                                        </MenuItem>
+                                        <MenuItem x:Name="MenuFavorite" Header="Favoritar/Desfavoritar" MenuItem.Click="MenuFavItem_Click">
+                                            <MenuItem.Icon><materialDesign:PackIcon Kind="StarOutline" /></MenuItem.Icon>
+                                        </MenuItem>
                                     </ContextMenu>
                                 </Setter.Value>
                             </Setter>
@@ -74,26 +75,68 @@
                     </TreeView.ItemContainerStyle>
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                            <TextBlock Text="{Binding Header}" />
+                            <Grid Margin="0,4" Background="Transparent" x:Name="NodeGrid">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <materialDesign:PackIcon x:Name="Icon" Kind="FolderOutline" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Header}" VerticalAlignment="Center" FontSize="15"/>
+                                
+                                <!-- Painel de Ações Internas -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Visibility="Hidden" x:Name="ActionPanel" Margin="10,0,0,0">
+                                    <Button Style="{StaticResource MaterialDesignIconButton}" Width="25" Height="25" Padding="0" ToolTip="Adicionar Música">
+                                        <materialDesign:PackIcon Kind="MusicNotePlus" Width="15" Height="15"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}" Width="25" Height="25" Padding="0" ToolTip="Criar Subpasta">
+                                        <materialDesign:PackIcon Kind="FolderPlusOutline" Width="15" Height="15"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}" Width="25" Height="25" Padding="0" ToolTip="Renomear">
+                                        <materialDesign:PackIcon Kind="PencilOutline" Width="15" Height="15"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconButton}" Width="25" Height="25" Padding="0" ToolTip="Excluir" Foreground="{DynamicResource ValidationErrorBrush}">
+                                        <materialDesign:PackIcon Kind="TrashCanOutline" Width="15" Height="15"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            
+                            <!-- Triggers para customizar a aparência dependendo da Tag / Tipo -->
+                            <HierarchicalDataTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ActionPanel" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding IsSong}" Value="True">
+                                    <Setter TargetName="Icon" Property="Kind" Value="MusicNote"/>
+                                    <Setter TargetName="ActionPanel" Property="Visibility" Value="Collapsed"/> <!-- Fazer uma versão do botão X pra musica depois -->
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsSystemFolder}" Value="True">
+                                    <Setter TargetName="Icon" Property="Kind" Value="FolderLockOutline"/>
+                                    <Setter TargetName="Icon" Property="Foreground" Value="{DynamicResource PrimaryHueLightBrush}"/>
+                                    <Setter TargetName="ActionPanel" Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </HierarchicalDataTemplate.Triggers>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
                 
-                <!-- Rodapé (Gear + Configurações) -->
-                <StackPanel Grid.Row="3" Margin="0,10,0,0" Orientation="Horizontal">
-                    <Button Content="&#xE713;" FontFamily="Segoe MDL2 Assets" Background="Transparent" Foreground="#888888" BorderThickness="0" FontSize="18" Padding="5" Cursor="Hand" ToolTip="Configurações"/>
-                    <TextBlock Text="Configurações" Foreground="#888888" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                </StackPanel>
+                <!-- Rodapé / Settings -->
+                <Button Grid.Row="3" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Margin="0,15,0,0" ToolTip="Configurações">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="CogOutline" VerticalAlignment="Center"/>
+                        <TextBlock Text="Configurações" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Border>
 
-        <!-- Divisor -->
-        <GridSplitter Grid.Column="1" Width="1" HorizontalAlignment="Stretch" Background="#3E3E42" />
-
-        <!-- Main Area (Leitura/Edição) -->
-        <Grid Grid.Column="2" Background="#1E1E1E">
+        <!-- Main Area (Conteúdo Selecionado) -->
+        <Grid Grid.Column="1" Margin="25">
             
-            <TextBlock Text="Selecione uma música..." HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#888888" FontSize="16" >
+            <TextBlock Text="Selecione uma música no menu lateral" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" 
+                       Foreground="{DynamicResource MaterialDesignHintText}" FontSize="18">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Hidden"/>
@@ -106,8 +149,7 @@
                 </TextBlock.Style>
             </TextBlock>
             
-            <!-- Contexto da Música -->
-            <Grid DataContext="{Binding}" Margin="20">
+            <Grid DataContext="{Binding}">
                 <Grid.Style>
                     <Style TargetType="Grid">
                         <Setter Property="Visibility" Value="Visible"/>
@@ -123,7 +165,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 
-                <!-- Top Header: Título à esquerda, Ações à direita -->
+                <!-- Top Header -->
                 <Grid Grid.Row="0" Margin="0,0,0,20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -131,11 +173,11 @@
                     </Grid.ColumnDefinitions>
                     
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="{Binding SelectedSong.Title}" FontSize="28" FontWeight="Bold" Foreground="#007ACC" />
-                        <TextBlock Text="{Binding SelectedSong.Artist}" FontSize="16" Foreground="#CCCCCC" />
+                        <TextBlock Text="{Binding SelectedSong.Title}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueLightBrush}" />
+                        <TextBlock Text="{Binding SelectedSong.Artist}" FontSize="18" Foreground="{DynamicResource MaterialDesignBodyLight}" />
                     </StackPanel>
                     
-                    <!-- Barra de Ações (Leitura) -->
+                    <!-- Barra de Ações de Leitura -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -148,20 +190,24 @@
                             </Style>
                         </StackPanel.Style>
                         
-                        <!-- Abrir Palco -->
-                        <Button Content="&#xE768;" FontFamily="Segoe MDL2 Assets" ToolTip="Abrir no Palco" Background="Transparent" Foreground="#28A745" BorderThickness="0" FontSize="20" Padding="10" Cursor="Hand" Click="OpenStage_Click"/>
-                        
-                        <!-- Editar -->
-                        <Button Content="&#xE70F;" FontFamily="Segoe MDL2 Assets" ToolTip="Editar" Command="{Binding EnterEditModeCommand}" Background="Transparent" Foreground="#007ACC" BorderThickness="0" FontSize="20" Padding="10" Cursor="Hand" />
-                        
-                        <!-- Favoritar -->
-                        <Button Content="&#xE734;" FontFamily="Segoe MDL2 Assets" ToolTip="Favoritar/Desfavoritar" Command="{Binding ToggleFavoriteCommand}" Background="Transparent" Foreground="#FFD700" BorderThickness="0" FontSize="20" Padding="10" Cursor="Hand" />
-                        
-                        <!-- Excluir -->
-                        <Button Content="&#xE74D;" FontFamily="Segoe MDL2 Assets" ToolTip="Excluir" Background="Transparent" Foreground="#DC3545" BorderThickness="0" FontSize="20" Padding="10" Cursor="Hand" />
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,10,0" ToolTip="Abrir no Palco" Click="OpenStage_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="PlayBoxOutline" Margin="0,0,5,0" />
+                                <TextBlock Text="Tocar" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding ToggleFavoriteCommand}" ToolTip="Favoritar">
+                            <materialDesign:PackIcon Kind="StarOutline" />
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Command="{Binding EnterEditModeCommand}" ToolTip="Editar">
+                            <materialDesign:PackIcon Kind="PencilOutline" />
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconButton}" Foreground="{DynamicResource ValidationErrorBrush}" ToolTip="Excluir">
+                            <materialDesign:PackIcon Kind="TrashCanOutline" />
+                        </Button>
                     </StackPanel>
                     
-                    <!-- Barra de Ações (Edição) -->
+                    <!-- Barra de Ações Edição -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                         <StackPanel.Style>
                             <Style TargetType="StackPanel">
@@ -174,34 +220,27 @@
                             </Style>
                         </StackPanel.Style>
                         
-                        <!-- Cancelar -->
-                        <Button Content="&#xE711; Cancelar" FontFamily="Segoe MDL2 Assets" Command="{Binding CancelEditCommand}" Background="#DC3545" Foreground="White" BorderThickness="0" FontSize="14" Padding="10,5" Margin="0,0,10,0" Cursor="Hand" />
-                        
-                        <!-- Salvar -->
-                        <Button Content="&#xE73E; Salvar" FontFamily="Segoe MDL2 Assets" Command="{Binding SaveSongCommand}" Background="#28A745" Foreground="White" BorderThickness="0" FontSize="14" Padding="10,5" Cursor="Hand" />
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" Command="{Binding CancelEditCommand}" Content="Cancelar" Foreground="{DynamicResource ValidationErrorBrush}" Margin="0,0,10,0" />
+                        <Button Style="{StaticResource MaterialDesignRaisedButton}" Command="{Binding SaveSongCommand}" Content="Salvar" />
                     </StackPanel>
                 </Grid>
                 
-                <!-- Editor / Reader Body -->
+                <!-- Editor/Leitor -->
                 <TextBox Grid.Row="1" Text="{Binding SelectedSong.RawContent, UpdateSourceTrigger=PropertyChanged}" 
-                         AcceptsReturn="True" 
-                         Background="#1E1E1E" Foreground="#E0E0E0" 
-                         FontFamily="Consolas" FontSize="16" 
-                         BorderThickness="0" Padding="0,10,0,0">
+                         AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                         Background="{DynamicResource MaterialDesignPaper}" Foreground="{DynamicResource MaterialDesignBody}" 
+                         FontFamily="Consolas" FontSize="18" BorderThickness="0">
                     <TextBox.Style>
-                        <Style TargetType="TextBox">
+                        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
                             <Setter Property="IsReadOnly" Value="True"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsEditMode}" Value="True">
                                     <Setter Property="IsReadOnly" Value="False"/>
-                                    <Setter Property="Background" Value="#252526"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBox.Style>
                 </TextBox>
-                         <!-- The Converter is hypothetical, we'll implement it or use triggers -->
-                         
             </Grid>
         </Grid>
     </Grid>

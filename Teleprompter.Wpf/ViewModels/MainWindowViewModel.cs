@@ -13,6 +13,9 @@ public class TreeItem
 {
     public string Header { get; set; } = string.Empty;
     public object? Tag { get; set; }
+    public bool IsSystemFolder { get; set; } = false;
+    public bool IsUserFolder { get; set; } = false;
+    public bool IsSong { get; set; } = false;
     public ObservableCollection<TreeItem> Children { get; set; } = new();
 }
 
@@ -121,57 +124,64 @@ public partial class MainWindowViewModel : ObservableObject
 
         var nodes = new ObservableCollection<TreeItem>();
 
-        // 1. Favoritas
-        var favoritesNode = new TreeItem { Header = "⭐ Favoritas" };
-        foreach (var song in songs.Where(s => s.IsFavorite))
-        {
-            favoritesNode.Children.Add(new TreeItem { Header = song.Title, Tag = song });
-        }
-        nodes.Add(favoritesNode);
-
-        // 2. Todas as Músicas (A-Z)
-        var allSongsNode = new TreeItem { Header = "Todas as Músicas" };
+        // 1. Todas as Músicas (A-Z)
+        var allSongsNode = new TreeItem { Header = "Todas as Músicas", IsSystemFolder = true };
         foreach (var song in songs)
         {
-            allSongsNode.Children.Add(new TreeItem { Header = song.Title, Tag = song });
+            allSongsNode.Children.Add(new TreeItem { Header = song.Title, Tag = song, IsSong = true });
         }
         nodes.Add(allSongsNode);
 
-        // 3. Artistas / Álbum / Música
-        var artistsNode = new TreeItem { Header = "Artistas", Children = new ObservableCollection<TreeItem>() };
+        // 2. Favoritas
+        var favoritesNode = new TreeItem { Header = "⭐ Favoritas", IsSystemFolder = true };
+        foreach (var song in songs.Where(s => s.IsFavorite))
+        {
+            favoritesNode.Children.Add(new TreeItem { Header = song.Title, Tag = song, IsSong = true });
+        }
+        nodes.Add(favoritesNode);
+
+        // 3. Artistas
+        var artistsNode = new TreeItem { Header = "Artistas", IsSystemFolder = true };
         var groupedByArtist = songs.GroupBy(s => string.IsNullOrWhiteSpace(s.Artist) ? "Desconhecido" : s.Artist).OrderBy(g => g.Key);
         
         foreach (var artistGroup in groupedByArtist)
         {
-            var artistItem = new TreeItem { Header = artistGroup.Key };
-            var groupedByAlbum = artistGroup.GroupBy(s => string.IsNullOrWhiteSpace(s.Album) ? "Singles" : s.Album).OrderBy(g => g.Key);
-            
-            foreach (var albumGroup in groupedByAlbum)
+            var artistItem = new TreeItem { Header = artistGroup.Key, IsSystemFolder = true };
+            foreach (var song in artistGroup.OrderBy(s => s.Title))
             {
-                var albumItem = new TreeItem { Header = albumGroup.Key };
-                foreach (var song in albumGroup)
-                {
-                    albumItem.Children.Add(new TreeItem { Header = song.Title, Tag = song });
-                }
-                artistItem.Children.Add(albumItem);
+                artistItem.Children.Add(new TreeItem { Header = song.Title, Tag = song, IsSong = true });
             }
             artistsNode.Children.Add(artistItem);
         }
         nodes.Add(artistsNode);
 
-        // 4. Minhas Músicas (Pastas Customizadas do Usuário)
-        var repertoiresNode = new TreeItem { Header = "Minhas Músicas" };
-        foreach (var folder in folders)
+        // 4. Pastas Customizadas do Usuário (Root)
+        var rootFolders = folders.Where(f => f.ParentFolderId == null).OrderBy(f => f.OrderIndex);
+        foreach (var rootFolder in rootFolders)
         {
-            var folderItem = new TreeItem { Header = folder.Name };
-            foreach (var sf in folder.SongFolders.OrderBy(x => x.Order))
-            {
-                folderItem.Children.Add(new TreeItem { Header = sf.Song.Title, Tag = sf.Song });
-            }
-            repertoiresNode.Children.Add(folderItem);
+            nodes.Add(BuildFolderTree(rootFolder, folders));
         }
-        nodes.Add(repertoiresNode);
 
         TreeNodes = nodes;
+    }
+
+    private TreeItem BuildFolderTree(Folder folder, List<Folder> allFolders)
+    {
+        var item = new TreeItem { Header = folder.Name, Tag = folder, IsUserFolder = true };
+        
+        // Adiciona subpastas recursivamente
+        var subFolders = allFolders.Where(f => f.ParentFolderId == folder.Id).OrderBy(f => f.OrderIndex);
+        foreach (var sub in subFolders)
+        {
+            item.Children.Add(BuildFolderTree(sub, allFolders));
+        }
+
+        // Adiciona as músicas desta pasta
+        foreach (var sf in folder.SongFolders.OrderBy(x => x.Order))
+        {
+            item.Children.Add(new TreeItem { Header = sf.Song.Title, Tag = sf.Song, IsSong = true });
+        }
+
+        return item;
     }
 }

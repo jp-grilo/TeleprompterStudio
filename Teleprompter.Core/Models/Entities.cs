@@ -19,6 +19,14 @@ public class Folder
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    
+    // Suporte ao Aninhamento de Pastas
+    public int? ParentFolderId { get; set; }
+    public Folder? ParentFolder { get; set; }
+    public ICollection<Folder> SubFolders { get; set; } = new List<Folder>();
+
+    // Ordenação da pasta
+    public int OrderIndex { get; set; } = 0;
 
     public ICollection<SongFolder> SongFolders { get; set; } = new List<SongFolder>();
 }

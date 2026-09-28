@@ -79,26 +79,9 @@ public partial class App : Application
         using (var scope = ServiceProvider.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.EnsureCreated();
-
-            // Seed inicial expandido com Djavan e Jorge Vercillo
-            if (!db.Songs.Any())
-            {
-                var scraper = scope.ServiceProvider.GetRequiredService<ISongScraper>();
-                try
-                {
-                    string rawEvidencias = await scraper.ScrapeAsync("https://www.cifraclub.com.br/chitaozinho-e-xororo/evidencias/");
-                    string rawSina = await scraper.ScrapeAsync("https://www.cifraclub.com.br/djavan/sina/");
-                    string rawMare = await scraper.ScrapeAsync("https://www.cifraclub.com.br/jorge-vercillo/que-nem-mare/");
-
-                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Evidências", Artist = "Chitãozinho & Xororó", Album = "Cowboy do Asfalto", RawContent = rawEvidencias });
-                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Sina", Artist = "Djavan", Album = "Luz", RawContent = rawSina });
-                    db.Songs.Add(new Teleprompter.Core.Models.Song { Title = "Que Nem Maré", Artist = "Jorge Vercillo", Album = "Perfil", RawContent = rawMare });
-                    
-                    await db.SaveChangesAsync();
-                }
-                catch { /* fallback silencioso caso falhe a internet */ }
-            }
+            var scraper = scope.ServiceProvider.GetRequiredService<ISongScraper>();
+            
+            await DbSeeder.SeedAsync(db, scraper);
         }
 
         var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
