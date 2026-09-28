@@ -21,11 +21,16 @@ model Song {
 }
 
 model Folder {
-  id      Int          @id @default(autoincrement())
-  name    String       @default("")
-  icon    String       @default("")
+  id             Int          @id @default(autoincrement())
+  name           String       @default("")
+  icon           String       @default("")
+  orderIndex     Int          @default(0)
   
-  songs   SongFolder[]
+  parentFolderId Int?
+  parentFolder   Folder?      @relation("SubFolders", fields: [parentFolderId], references: [id], onDelete: Cascade)
+  subFolders     Folder[]     @relation("SubFolders")
+  
+  songs          SongFolder[]
 }
 
 model SongFolder {

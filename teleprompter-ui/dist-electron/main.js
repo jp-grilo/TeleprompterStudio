@@ -7261,7 +7261,9 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Prisma.FolderScalarFieldEnum = {
 		id: "id",
 		name: "name",
-		icon: "icon"
+		icon: "icon",
+		orderIndex: "orderIndex",
+		parentFolderId: "parentFolderId"
 	};
 	exports.Prisma.SongFolderScalarFieldEnum = {
 		songId: "songId",
@@ -7271,6 +7273,10 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.Prisma.SortOrder = {
 		asc: "asc",
 		desc: "desc"
+	};
+	exports.Prisma.NullsOrder = {
+		first: "first",
+		last: "last"
 	};
 	exports.Prisma.ModelName = {
 		Song: "Song",
@@ -7310,8 +7316,8 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports) => {
 			"fromEnvVar": null,
 			"value": "file:./dev.db"
 		} } },
-		"inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = \"file:./dev.db\"\n}\n\nmodel Song {\n  id              Int     @id @default(autoincrement())\n  title           String  @default(\"\")\n  artist          String  @default(\"\")\n  album           String  @default(\"\")\n  rawContent      String  @default(\"\")\n  transposeAmount Int     @default(0)\n  scrollSpeed     Float   @default(1.0)\n  isFavorite      Boolean @default(false)\n\n  folders SongFolder[]\n}\n\nmodel Folder {\n  id   Int    @id @default(autoincrement())\n  name String @default(\"\")\n  icon String @default(\"\")\n\n  songs SongFolder[]\n}\n\nmodel SongFolder {\n  songId   Int\n  folderId Int\n  order    Int @default(0)\n\n  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)\n  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)\n\n  @@id([songId, folderId])\n}\n",
-		"inlineSchemaHash": "ef21f4365d115a6890bd693d25ed73e3faa88d2a1cb8dbd20104976c681f0988",
+		"inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"sqlite\"\n  url      = \"file:./dev.db\"\n}\n\nmodel Song {\n  id              Int     @id @default(autoincrement())\n  title           String  @default(\"\")\n  artist          String  @default(\"\")\n  album           String  @default(\"\")\n  rawContent      String  @default(\"\")\n  transposeAmount Int     @default(0)\n  scrollSpeed     Float   @default(1.0)\n  isFavorite      Boolean @default(false)\n\n  folders SongFolder[]\n}\n\nmodel Folder {\n  id         Int    @id @default(autoincrement())\n  name       String @default(\"\")\n  icon       String @default(\"\")\n  orderIndex Int    @default(0)\n\n  parentFolderId Int?\n  parentFolder   Folder?  @relation(\"SubFolders\", fields: [parentFolderId], references: [id], onDelete: Cascade)\n  subFolders     Folder[] @relation(\"SubFolders\")\n\n  songs SongFolder[]\n}\n\nmodel SongFolder {\n  songId   Int\n  folderId Int\n  order    Int @default(0)\n\n  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)\n  folder Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)\n\n  @@id([songId, folderId])\n}\n",
+		"inlineSchemaHash": "0252018852a222563c6a38d115ca18c3019545b7c3e3b8e318f65bfecb9e79de",
 		"copyEngine": true
 	};
 	var fs = require("fs");
@@ -7324,7 +7330,7 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports) => {
 		config.dirname = path$1.join(process.cwd(), alternativePath);
 		config.isBundled = true;
 	}
-	config.runtimeDataModel = JSON.parse("{\"models\":{\"Song\":{\"dbName\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"title\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"artist\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"album\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"rawContent\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transposeAmount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"scrollSpeed\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Float\",\"default\":1,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"isFavorite\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folders\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"SongFolder\",\"relationName\":\"SongToSongFolder\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Folder\":{\"dbName\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"icon\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"songs\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"SongFolder\",\"relationName\":\"FolderToSongFolder\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"SongFolder\":{\"dbName\":null,\"fields\":[{\"name\":\"songId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folderId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"order\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"song\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Song\",\"relationName\":\"SongToSongFolder\",\"relationFromFields\":[\"songId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folder\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Folder\",\"relationName\":\"FolderToSongFolder\",\"relationFromFields\":[\"folderId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":{\"name\":null,\"fields\":[\"songId\",\"folderId\"]},\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}");
+	config.runtimeDataModel = JSON.parse("{\"models\":{\"Song\":{\"dbName\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"title\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"artist\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"album\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"rawContent\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"transposeAmount\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"scrollSpeed\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Float\",\"default\":1,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"isFavorite\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Boolean\",\"default\":false,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folders\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"SongFolder\",\"relationName\":\"SongToSongFolder\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"Folder\":{\"dbName\":null,\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":true,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":{\"name\":\"autoincrement\",\"args\":[]},\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"name\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"icon\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"String\",\"default\":\"\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"orderIndex\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"parentFolderId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"parentFolder\",\"kind\":\"object\",\"isList\":false,\"isRequired\":false,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Folder\",\"relationName\":\"SubFolders\",\"relationFromFields\":[\"parentFolderId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"subFolders\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Folder\",\"relationName\":\"SubFolders\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"songs\",\"kind\":\"object\",\"isList\":true,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"SongFolder\",\"relationName\":\"FolderToSongFolder\",\"relationFromFields\":[],\"relationToFields\":[],\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":null,\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false},\"SongFolder\":{\"dbName\":null,\"fields\":[{\"name\":\"songId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folderId\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":true,\"hasDefaultValue\":false,\"type\":\"Int\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"order\",\"kind\":\"scalar\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":true,\"type\":\"Int\",\"default\":0,\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"song\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Song\",\"relationName\":\"SongToSongFolder\",\"relationFromFields\":[\"songId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false},{\"name\":\"folder\",\"kind\":\"object\",\"isList\":false,\"isRequired\":true,\"isUnique\":false,\"isId\":false,\"isReadOnly\":false,\"hasDefaultValue\":false,\"type\":\"Folder\",\"relationName\":\"FolderToSongFolder\",\"relationFromFields\":[\"folderId\"],\"relationToFields\":[\"id\"],\"relationOnDelete\":\"Cascade\",\"isGenerated\":false,\"isUpdatedAt\":false}],\"primaryKey\":{\"name\":null,\"fields\":[\"songId\",\"folderId\"]},\"uniqueFields\":[],\"uniqueIndexes\":[],\"isGenerated\":false}},\"enums\":{},\"types\":{}}");
 	defineDmmfProperty(exports.Prisma, config.runtimeDataModel);
 	config.engineWasm = void 0;
 	var { warnEnvConflicts } = require_library();
@@ -7377,13 +7383,95 @@ electron.app.on("window-all-closed", () => {
 });
 electron.ipcMain.handle("get-tree", async () => {
 	try {
-		return await prisma.folder.findMany({ include: { songs: {
-			include: { song: true },
-			orderBy: { order: "asc" }
-		} } });
+		const allSongs = await prisma.song.findMany({ orderBy: { title: "asc" } });
+		const favorites = allSongs.filter((s) => s.isFavorite);
+		const artistsMap = /* @__PURE__ */ new Map();
+		for (const song of allSongs) {
+			if (!artistsMap.has(song.artist)) artistsMap.set(song.artist, {
+				id: `artist-${song.artist}`,
+				name: song.artist,
+				icon: "🎤",
+				isSystem: true,
+				songs: [],
+				subFolders: []
+			});
+			artistsMap.get(song.artist).songs.push({ song });
+		}
+		const artistsFolders = Array.from(artistsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+		const systemFolders = [
+			{
+				id: "sys-all",
+				name: "Todas as músicas",
+				icon: "🎵",
+				isSystem: true,
+				songs: allSongs.map((song) => ({ song })),
+				subFolders: []
+			},
+			{
+				id: "sys-artists",
+				name: "Artistas",
+				icon: "👤",
+				isSystem: true,
+				songs: [],
+				subFolders: artistsFolders
+			},
+			{
+				id: "sys-fav",
+				name: "Favoritas",
+				icon: "⭐",
+				isSystem: true,
+				songs: favorites.map((song) => ({ song })),
+				subFolders: []
+			}
+		];
+		const userFolders = await prisma.folder.findMany({
+			include: { songs: {
+				include: { song: true },
+				orderBy: { order: "asc" }
+			} },
+			orderBy: { orderIndex: "asc" }
+		});
+		const rootFolders = userFolders.filter((f) => !f.parentFolderId).map((f) => {
+			return {
+				...f,
+				isSystem: false,
+				subFolders: userFolders.filter((sub) => sub.parentFolderId === f.id)
+			};
+		});
+		return [...systemFolders, ...rootFolders];
 	} catch (error) {
 		console.error("Erro ao buscar a árvore:", error);
 		throw error;
+	}
+});
+electron.ipcMain.handle("open-player", async (_, songId) => {
+	const playerWindow = new electron.BrowserWindow({
+		fullscreen: true,
+		autoHideMenuBar: true,
+		webPreferences: {
+			preload: path.join(__dirname, "preload.js"),
+			nodeIntegration: false,
+			contextIsolation: true
+		}
+	});
+	const baseUrl = process.env.VITE_DEV_SERVER_URL ? process.env.VITE_DEV_SERVER_URL : `file://${path.join(__dirname, "../dist/index.html")}`;
+	playerWindow.loadURL(`${baseUrl}#/player/${songId}`);
+});
+electron.ipcMain.handle("import-cifraclub", async (_, url) => {
+	try {
+		const html = await (await fetch(url)).text();
+		const titleMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+		const artistMatch = html.match(/<h2[^>]*><a[^>]*>(.*?)<\/a><\/h2>/i);
+		const textMatch = html.match(/<pre[^>]*>(.*?)<\/pre>/is);
+		if (!textMatch) throw new Error("Não foi possível encontrar a cifra/letra na página.");
+		const rawContent = textMatch[1].replace(/<b[^>]*>(.*?)<\/b>/g, "$1").replace(/<span[^>]*>(.*?)<\/span>/g, "").replace(/<[^>]+>/g, "").replace(/&quot;/g, "\"").replace(/&amp;/g, "&");
+		return {
+			title: titleMatch ? titleMatch[1].trim() : "Música Desconhecida",
+			artist: artistMatch ? artistMatch[1].trim() : "Artista Desconhecido",
+			rawContent: rawContent.trim()
+		};
+	} catch (error) {
+		throw new Error("Falha ao importar: " + error.message);
 	}
 });
 //#endregion
