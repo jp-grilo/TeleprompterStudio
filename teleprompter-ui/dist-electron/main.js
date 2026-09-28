@@ -7444,6 +7444,15 @@ electron.ipcMain.handle("get-tree", async () => {
 		throw error;
 	}
 });
+electron.ipcMain.handle("get-song", async (_, songId) => {
+	return await prisma.song.findUnique({ where: { id: songId } });
+});
+electron.ipcMain.handle("update-song-speed", async (_, songId, scrollSpeed) => {
+	return await prisma.song.update({
+		where: { id: songId },
+		data: { scrollSpeed }
+	});
+});
 electron.ipcMain.handle("open-player", async (_, songId) => {
 	const playerWindow = new electron.BrowserWindow({
 		fullscreen: true,

@@ -23,6 +23,10 @@ function App() {
   const [collapsedFolders, setCollapsedFolders] = useState<Set<number>>(new Set())
   const [showAddToFolderModal, setShowAddToFolderModal] = useState<number | null>(null)
   const [selectedSongsForFolder, setSelectedSongsForFolder] = useState<number[]>([])
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [playbackMode, setPlaybackMode] = useState<'scroll' | 'slides'>(
+    (localStorage.getItem('playbackMode') as 'scroll' | 'slides') || 'scroll'
+  )
 
   const fetchTree = async () => {
     try {
@@ -443,11 +447,40 @@ function App() {
           {filteredFolders.map(folder => renderFolder(folder, false))}
         </div>
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer" style={{ cursor: 'pointer' }} onClick={() => setShowSettingsModal(true)}>
           <Settings size={20} />
           <span>Configurações</span>
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="modal-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--bg-secondary)', padding: '24px', borderRadius: '12px', width: '400px' }}>
+            <h3 style={{ marginBottom: '16px' }}>Configurações do Player</h3>
+            
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Modo de Exibição no Palco</label>
+              <select 
+                value={playbackMode} 
+                onChange={(e) => {
+                  const val = e.target.value as 'scroll' | 'slides';
+                  setPlaybackMode(val);
+                  localStorage.setItem('playbackMode', val);
+                }}
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border-strong)', background: 'var(--bg-primary)', color: 'white' }}
+              >
+                <option value="scroll">Rolagem Contínua (Scroll Automático)</option>
+                <option value="slides">Slides (Passar Tela Inteira)</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="icon-btn primary" style={{ width: 'auto', padding: '0 16px' }} onClick={() => setShowSettingsModal(false)}>Fechar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Area */}
       <div className="main-area">
@@ -467,7 +500,7 @@ function App() {
               <div className="content-actions">
                 {!isEditMode ? (
                   <>
-                    <button className="icon-btn success" title="Abrir no Palco">
+                    <button className="icon-btn success" title="Abrir no Palco" onClick={() => (window as any).api.openPlayer(selectedSong.id)}>
                       <Play size={20} />
                     </button>
                     <button className="icon-btn" title="Editar" onClick={handleEditClick}>

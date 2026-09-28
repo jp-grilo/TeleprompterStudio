@@ -100,6 +100,20 @@ ipcMain.handle('get-tree', async () => {
   }
 });
 
+// Buscar música específica
+ipcMain.handle('get-song', async (_, songId: number) => {
+  return await prisma.song.findUnique({
+    where: { id: songId }
+  });
+});
+
+ipcMain.handle('update-song-speed', async (_, songId: number, scrollSpeed: number) => {
+  return await prisma.song.update({
+    where: { id: songId },
+    data: { scrollSpeed }
+  });
+});
+
 // Abrir Teleprompter Player nativo
 ipcMain.handle('open-player', async (_, songId) => {
   const playerWindow = new BrowserWindow({

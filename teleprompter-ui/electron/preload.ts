@@ -12,4 +12,6 @@ contextBridge.exposeInMainWorld('api', {
   deleteFolder: (folderId: number) => ipcRenderer.invoke('delete-folder', folderId),
   removeFromFolder: (songId: number, folderId: number) => ipcRenderer.invoke('remove-from-folder', songId, folderId),
   syncFolderSongs: (folderId: number, songIds: number[]) => ipcRenderer.invoke('sync-folder-songs', folderId, songIds),
+  getSong: (songId: number) => ipcRenderer.invoke('get-song', songId),
+  updateSongSpeed: (songId: number, speed: number) => ipcRenderer.invoke('update-song-speed', songId, speed),
 });

@@ -10,6 +10,8 @@ electron.contextBridge.exposeInMainWorld("api", {
 	deleteSong: (songId) => electron.ipcRenderer.invoke("delete-song", songId),
 	deleteFolder: (folderId) => electron.ipcRenderer.invoke("delete-folder", folderId),
 	removeFromFolder: (songId, folderId) => electron.ipcRenderer.invoke("remove-from-folder", songId, folderId),
-	syncFolderSongs: (folderId, songIds) => electron.ipcRenderer.invoke("sync-folder-songs", folderId, songIds)
+	syncFolderSongs: (folderId, songIds) => electron.ipcRenderer.invoke("sync-folder-songs", folderId, songIds),
+	getSong: (songId) => electron.ipcRenderer.invoke("get-song", songId),
+	updateSongSpeed: (songId, speed) => electron.ipcRenderer.invoke("update-song-speed", songId, speed)
 });
 //#endregion
