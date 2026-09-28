@@ -122,31 +122,178 @@ ipcMain.handle('open-player', async (_, songId) => {
 
 // Importar do CifraClub
 ipcMain.handle('import-cifraclub', async (_, url: string) => {
-  try {
-    const response = await fetch(url);
-    const html = await response.text();
-    
-    // Extrações simples usando Regex (Em prod ideal seria usar um HTML Parser como Cheerio)
-    const titleMatch = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
-    const artistMatch = html.match(/<h2[^>]*><a[^>]*>(.*?)<\/a><\/h2>/i);
-    const textMatch = html.match(/<pre[^>]*>(.*?)<\/pre>/is); // 'is' captura múltiplas linhas
-    
-    if (!textMatch) throw new Error("Não foi possível encontrar a cifra/letra na página.");
+  return new Promise((resolve, reject) => {
+    let hiddenWin: BrowserWindow | null = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    });
 
-    // Limpar HTML da cifra
-    const rawContent = textMatch[1]
-      .replace(/<b[^>]*>(.*?)<\/b>/g, '$1')
-      .replace(/<span[^>]*>(.*?)<\/span>/g, '')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&quot;/g, '"')
-      .replace(/&amp;/g, '&');
+    hiddenWin.webContents.on('did-finish-load', async () => {
+      try {
+        const data = await hiddenWin!.webContents.executeJavaScript(`
+          (() => {
+            let title = 'Música Desconhecida';
+            let artist = 'Artista Desconhecido';
 
-    return {
-      title: titleMatch ? titleMatch[1].trim() : 'Música Desconhecida',
-      artist: artistMatch ? artistMatch[1].trim() : 'Artista Desconhecido',
-      rawContent: rawContent.trim()
-    };
-  } catch (error: any) {
-    throw new Error('Falha ao importar: ' + error.message);
+            // Tenta usar JSON-LD para maior precisão (CifraClub usa isso)
+            try {
+              const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
+              for (const script of scripts) {
+                const data = JSON.parse(script.innerText || '{}');
+                // Estrutura do CifraClub para música/artista
+                if (data['@type'] && data['@type'].includes('MusicRecording')) {
+                  if (data.name) {
+                    const parts = data.name.split(' - ');
+                    if (parts.length > 1) {
+                      title = parts[1].trim();
+                    } else {
+                      title = data.name;
+                    }
+                  }
+                  if (data.byArtist && data.byArtist.name) {
+                    artist = data.byArtist.name;
+                  }
+                }
+              }
+            } catch (e) {}
+
+            // Fallback para os H1 e H2 caso o JSON-LD falhe
+            if (title === 'Música Desconhecida') {
+              title = document.querySelector('h1')?.innerText || title;
+            }
+            if (artist === 'Artista Desconhecido') {
+              artist = document.querySelector('h2 a')?.innerText || document.querySelector('h2')?.innerText || artist;
+            }
+            
+            const preEl = document.querySelector('pre[data-chord-content="true"]') || document.querySelector('pre');
+            if (!preEl) return { error: "Não foi possível encontrar a cifra/letra na página." };
+
+            let rawHtml = preEl.innerHTML;
+            
+            // Remover conteúdo de spans (geralmente tabs ocultas e notas extras)
+            rawHtml = rawHtml.replace(/<span[^>]*>[\\s\\S]*?<\\/span>/gi, '');
+            
+            // Transformar fechamento de div em quebra de linha (estrutura do cifraclub)
+            rawHtml = rawHtml.replace(/<\\/div>/gi, '\\n');
+            
+            // Remover o resto das tags HTML
+            rawHtml = rawHtml.replace(/<[^>]+>/g, '');
+            
+            // Decoding de HTML entities básicos
+            rawHtml = rawHtml
+              .replace(/&quot;/g, '"')
+              .replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&#39;/g, "'");
+
+            return { title: title.trim(), artist: artist.trim(), rawContent: rawHtml.trim() };
+          })();
+        `);
+
+        hiddenWin?.destroy();
+        hiddenWin = null;
+        
+        if (data.error) {
+          reject(new Error(data.error));
+        } else {
+          resolve(data);
+        }
+      } catch (err: any) {
+        if (hiddenWin) hiddenWin.destroy();
+        reject(new Error("Erro ao extrair dados da página: " + err.message));
+      }
+    });
+
+    hiddenWin.webContents.on('did-fail-load', () => {
+      if (hiddenWin) hiddenWin.destroy();
+      reject(new Error("Falha ao carregar a página do CifraClub."));
+    });
+
+    // Inicia o carregamento com um User-Agent de navegador normal
+    hiddenWin.loadURL(url, {
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+    });
+  });
+});
+
+// Salvar Música
+ipcMain.handle('save-song', async (_, songData) => {
+  if (songData.id === 'temp-id') {
+    // É uma nova música importada, salvar no BD (Na pasta principal por ex)
+    const newSong = await prisma.song.create({
+      data: {
+        title: songData.title,
+        artist: songData.artist,
+        rawContent: songData.rawContent,
+        isFavorite: false
+      }
+    });
+    return newSong;
+  } else {
+    const updated = await prisma.song.update({
+      where: { id: songData.id },
+      data: { rawContent: songData.rawContent }
+    });
+    return updated;
   }
+});
+
+// Toggle Favorite
+ipcMain.handle('toggle-favorite', async (_, songId, isFav) => {
+  return await prisma.song.update({
+    where: { id: songId },
+    data: { isFavorite: isFav }
+  });
+});
+
+// Criar Pasta
+ipcMain.handle('create-folder', async (_, name) => {
+  return await prisma.folder.create({
+    data: { name, orderIndex: 99 }
+  });
+});
+
+// Excluir Música
+ipcMain.handle('delete-song', async (_, songId) => {
+  return await prisma.song.delete({
+    where: { id: songId }
+  });
+});
+
+// Excluir Pasta
+ipcMain.handle('delete-folder', async (_, folderId) => {
+  return await prisma.folder.delete({
+    where: { id: folderId }
+  });
+});
+
+// Remover Música da Pasta Específica
+ipcMain.handle('remove-from-folder', async (_, songId, folderId) => {
+  return await prisma.songFolder.deleteMany({
+    where: { songId, folderId }
+  });
+});
+
+// Sincronizar Músicas na Pasta Específica
+ipcMain.handle('sync-folder-songs', async (_, folderId: number, songIds: number[]) => {
+  // Deleta todas as relações desta pasta
+  await prisma.songFolder.deleteMany({
+    where: { folderId }
+  });
+
+  // Recria as selecionadas
+  const data = songIds.map((id, index) => ({
+    folderId,
+    songId: id,
+    order: index
+  }));
+
+  if (data.length > 0) {
+    await prisma.songFolder.createMany({ data });
+  }
+  return true;
 });
