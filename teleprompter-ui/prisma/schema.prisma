@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Song {
+  id              Int          @id @default(autoincrement())
+  title           String       @default("")
+  artist          String       @default("")
+  album           String       @default("")
+  rawContent      String       @default("")
+  transposeAmount Int          @default(0)
+  scrollSpeed     Float        @default(1.0)
+  isFavorite      Boolean      @default(false)
+  
+  folders         SongFolder[]
+}
+
+model Folder {
+  id      Int          @id @default(autoincrement())
+  name    String       @default("")
+  icon    String       @default("")
+  
+  songs   SongFolder[]
+}
+
+model SongFolder {
+  songId   Int
+  folderId Int
+  order    Int    @default(0)
+  
+  song     Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  folder   Folder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@id([songId, folderId])
+}

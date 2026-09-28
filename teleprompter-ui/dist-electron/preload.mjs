@@ -1,0 +1,1 @@
+let e=require("electron");e.contextBridge.exposeInMainWorld(`api`,{getTree:()=>e.ipcRenderer.invoke(`get-tree`)});
