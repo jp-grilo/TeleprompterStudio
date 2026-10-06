@@ -1,10 +1,34 @@
-﻿# Teleprompter Studio
+# Teleprompter Studio
 
 Aplicativo desktop nativo para Windows projetado para musicos, cantores e bandas, fornecendo execucao de cifras e letras no palco com rolagem suave acelerada por hardware e modo de exibicao estruturada em quatro linhas.
 
+---
+
+## Download e Execucao Rapida (Recomendado para Usuarios)
+
+Nao e necessario instalar ferramentas de programacao, Git, Node.js ou ter familiaridade com o GitHub para utilizar o Teleprompter Studio. O aplicativo e distribuido em formato executavel portatil (.exe), pronto para uso imediato.
+
+### Link Direto para Download
+- **[Download Direto: Teleprompter Studio para Windows (.exe)](https://github.com/jp-grilo/TeleprompterStudio/releases/latest/download/Teleprompt.1.0.0.exe)**
+- Pagina com todas as versoes e historico: [Releases do Teleprompter Studio](https://github.com/jp-grilo/TeleprompterStudio/releases/latest)
+
+### Como Usar em 3 Passos
+1. **Baixar**: Clique no link de download direto acima para salvar o arquivo executavel portatil no seu computador.
+2. **Executar**: Acesse sua pasta de Downloads e de um duplo clique no arquivo baixado (`Teleprompt.1.0.0.exe`). Nao e necessario instalar nada.
+3. **Aviso do Windows Defender (SmartScreen)**:
+   - Como se trata de um software livre independente e sem certificado digital pago, o Windows pode exibir uma janela com o aviso *"O Windows protegeu o seu computador"*.
+   - Para abrir o programa normalmente: clique em **Mais informacoes** e em seguida selecione **Executar assim mesmo**. O aplicativo abrira de imediato.
+
+### Como Rodar Diretamente pela Pasta do Repositorio
+Caso voce tenha baixado ou clonado este repositorio:
+- Basta dar um duplo clique no atalho **`Teleprompter.lnk`** ou no arquivo inicializador **`Iniciar-Teleprompter.bat`** presente diretamente na raiz do projeto.
+- O inicializador detecta automaticamente o executavel compilado e abre a aplicacao instantaneamente.
+
+---
+
 ## Visao Geral
 
-O Teleprompter Studio foi desenvolvido com foco em desempenho, confiabilidade e operacao offline total. Construido com o ecossistema .NET 8 LTS e Windows Presentation Foundation (WPF), o sistema aproveita a aceleracao grafica do DirectX para proporcionar rolagem continua fluida a 60 quadros por segundo, mesmo em dispositivos de baixo consumo.
+O Teleprompter Studio foi desenvolvido com foco em desempenho, confiabilidade e operacao offline total. Projetado para proporcionar rolagem continua fluida a 60 quadros por segundo e visualizacao em tela cheia no palco, o sistema conta com uma interface desktop dedicada desenvolvida em Electron e React, alem de bibliotecas de dominio em .NET para manipulacao musical e persistencia local SQLite.
 
 ## Principais Funcionalidades
 
@@ -19,27 +43,25 @@ O Teleprompter Studio foi desenvolvido com foco em desempenho, confiabilidade e 
 
 ## Arquitetura do Software
 
-O projeto adota o padrao arquitetural MVVM (Model-View-ViewModel) e principios de Clean Architecture, segregando responsabilidades em cinco camadas principais:
+O projeto adota principios de Clean Architecture e separacao modular de responsabilidades:
 
-1. Teleprompter.Core: Entidades de dominio, modelos de dados e definicao das interfaces de servico. Nao possui dependencias de interface grafica.
-2. Teleprompter.Services: Implementacoes dos motores de negocio:
-   - UniversalChordParserService: Deteccao de secoes, analise sintatica de acordes via expressoes regulares e alinhamento de texto.
-   - ChromaticTranspositionService: Transposicao cromatica de notas e conversao de sistemas de notacao.
-   - ScraperPipeline: Ingestao estruturada com CifraClubScraper e UniversalHeuristicScraper.
-   - JsonSongPackageService: Serializacao e desserializacao de musicas e repertorios em JSON.
-   - JsonSettingsService: Gerenciamento persistente de preferencias do usuario.
-   - WpfTeleprompterEngine: Controlador de taxa de rolagem, temporizacao e paginacao.
-3. Teleprompter.Data: Camada de acesso a dados utilizando Entity Framework Core com SQLite local.
-4. Teleprompter.Wpf: Interface com o usuario construida em XAML, utilizando CommunityToolkit.Mvvm e estilizacao vetorial.
-5. Teleprompter.Tests: Bateria de testes unitarios automatizados cobrindo a logica musical, parsing, persistencia e transposicao.
+1. teleprompter-ui: Aplicacao desktop construida com Electron, React, TypeScript, Tailwind/CSS e Prisma com banco SQLite embarcado, fornecendo interface grafica de alta performance, visualizador de palco em janela dedicada e scraping automatizado.
+2. Teleprompter.Core: Modelos e contratos de dominio musical puros (.NET 8).
+3. Teleprompter.Services: Implementacoes de motores de negócio em C# (parser sintatico de acordes, algoritmo de transposicao cromatica e scrapers).
+4. Teleprompter.Data: Camada de persistencia Entity Framework Core com SQLite.
+5. Teleprompter.Tests: Bateria de testes unitarios cobrindo a logica harmonica, parsing e persistencia.
 
 ## Requisitos de Sistema
 
-- Sistema Operacional: Windows 10 (versao 19041+) ou Windows 11.
-- Runtime / SDK: .NET 8.0 SDK (LTS) ou superior.
-- Arquitetura: x64 ou ARM64.
+### Para Usuarios Finais (Apenas Executar o Aplicativo)
+- Sistema Operacional: Windows 10 (versao 19041+) ou Windows 11 (64-bit).
+- Dependencias: Nenhuma. O executavel portatil contem todos os componentes necessarios embutidos.
 
-## Instrucoes de Compilacao e Testes
+### Para Desenvolvedores (Compilar a Partir do Codigo-Fonte)
+- Node.js 18.x ou superior e npm.
+- .NET 8.0 SDK (LTS) ou superior.
+
+## Instrucoes de Desenvolvimento e Compilacao
 
 ### Clonar o repositorio
 ```bash
@@ -47,20 +69,23 @@ git clone https://github.com/jp-grilo/TeleprompterStudio.git
 cd TeleprompterStudio
 ```
 
-### Restaurar dependencias e compilar
+### Executar a Interface Desktop (Modo Desenvolvedor)
 ```bash
-dotnet restore
-dotnet build -c Release
+cd teleprompter-ui
+npm install
+npm run dev
 ```
 
-### Executar a suite de testes unitarios
+### Compilar o Executavel Portatil (.exe)
+```bash
+cd teleprompter-ui
+npm run dist
+```
+O executavel portatil sera gerado no diretorio `teleprompter-ui/dist-bin/`.
+
+### Executar os Testes Unitarios .NET
 ```bash
 dotnet test
-```
-
-### Executar a aplicacao
-```bash
-dotnet run --project src/Teleprompter.Wpf/Teleprompter.Wpf.csproj
 ```
 
 ## Licenca
